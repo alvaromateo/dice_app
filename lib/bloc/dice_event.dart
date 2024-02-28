@@ -2,20 +2,20 @@ part of 'dice_bloc.dart';
 
 @immutable
 sealed class DiceEvent {
-  const DiceEvent();
+  final int? diceNum;
+  final int? diceFaces;
+
+  const DiceEvent({this.diceNum, this.diceFaces});
 }
 
 final class DiceReset extends DiceEvent {
-  const DiceReset();
+  const DiceReset({super.diceNum, super.diceFaces});
 }
 
 final class DiceConfigured extends DiceEvent {
-  final int diceNum;
-  final int diceFaces;
-
-  const DiceConfigured(this.diceNum, this.diceFaces);
+  const DiceConfigured({super.diceNum, super.diceFaces});
 }
 
 final class DiceRoll extends DiceEvent {
-  const DiceRoll();
+  const DiceRoll({super.diceNum, super.diceFaces});
 }

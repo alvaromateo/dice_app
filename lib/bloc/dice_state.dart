@@ -9,16 +9,29 @@ sealed class DiceState extends Equatable {
   final int diceNum;
   final int diceFaces;
 
-  const DiceState({required this.diceNum, required this.diceFaces});
+  const DiceState({
+    required this.diceNum,
+    required this.diceFaces,
+  });
 
   @override
   List<Object> get props => [diceNum, diceFaces];
 }
 
+final class DiceNotStarted extends DiceState {
+  const DiceNotStarted()
+      : super(
+          diceNum: _kDefaultDiceNumber,
+          diceFaces: _kDefaultDiceFaces,
+        );
+}
+
 final class DiceInitial extends DiceState {
-  const DiceInitial(
-      {super.diceNum = _kDefaultDiceNumber,
-      super.diceFaces = _kDefaultDiceFaces});
+  const DiceInitial({int? number, int? faces})
+      : super(
+          diceNum: number ?? _kDefaultDiceNumber,
+          diceFaces: faces ?? _kDefaultDiceFaces,
+        );
 }
 
 final class DiceThrowResult extends DiceState {

@@ -1,4 +1,6 @@
+import 'package:dice_app/bloc/dice_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../color_schemes.dart';
 
@@ -6,41 +8,55 @@ import 'package:dice_app/components/results.dart';
 import 'package:dice_app/components/select_dice.dart';
 import 'package:dice_app/components/splash.dart';
 
-class ScaffoldWrapper extends StatelessWidget {
-  final Widget content;
+const splashScreen = Splash();
+const resultsScreen = Results();
+final selectDiceScreen = SelectDice();
 
-  const ScaffoldWrapper(this.content, {Key? key}) : super(key: key);
+class ScaffoldWrapper extends StatelessWidget {
+  const ScaffoldWrapper({Key? key}) : super(key: key);
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: color(context).background,
-      body: content,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          switch (content.runtimeType) {
-            case SelectDice:
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (ctx) => const ScaffoldWrapper(Results())));
-            case Results:
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (ctx) => const ScaffoldWrapper(SelectDice())));
-            case Splash:
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (ctx) => const ScaffoldWrapper(SelectDice())));
-            default:
-            // do nothing
-          }
-        },
-        tooltip: 'Roll',
-        child: switch (content.runtimeType) {
-          SelectDice => const Icon(Icons.casino),
-          Results => const Icon(Icons.redo),
-          Splash => const Icon(Icons.arrow_forward),
-          // we should not reach this point
-          _ => throw Error()
-        },
+    return BlocProvider(
+      create: (_) => DiceBloc(),
+      child: BlocBuilder<DiceBloc, DiceState>(
+        builder: (context, state) => Scaffold(
+          backgroundColor: color(context).background,
+          body: switch (state) {
+            DiceNotStarted() => splashScreen,
+            DiceInitial() => selectDiceScreen,
+            DiceThrowResult() => resultsScreen,
+          },
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              switch (state) {
+                case DiceInitial():
+                  if (selectDiceScreen.isFormValid()) {
+                    // means the values are valid
+                    // so we can get them from the state
+                    context.read<DiceBloc>().add(DiceRoll(
+                          diceNum: state.diceNum,
+                          diceFaces: state.diceFaces,
+                        ));
+                  }
+                case DiceThrowResult():
+                  context.read<DiceBloc>().add(DiceReset(
+                        diceNum: state.diceNum,
+                        diceFaces: state.diceFaces,
+                      ));
+                case DiceNotStarted():
+                  context.read<DiceBloc>().add(const DiceReset());
+              }
+            },
+            tooltip: 'Roll',
+            child: switch (state) {
+              DiceInitial() => const Icon(Icons.casino),
+              DiceThrowResult() => const Icon(Icons.redo),
+              DiceNotStarted() => const Icon(Icons.arrow_forward),
+            },
+          ),
+        ),
       ),
     );
   }
